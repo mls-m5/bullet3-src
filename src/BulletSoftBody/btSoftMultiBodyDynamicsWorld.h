@@ -13,17 +13,18 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef BT_SOFT_RIGID_DYNAMICS_WORLD_H
-#define BT_SOFT_RIGID_DYNAMICS_WORLD_H
+#ifndef BT_SOFT_MULTIBODY_DYNAMICS_WORLD_H
+#define BT_SOFT_MULTIBODY_DYNAMICS_WORLD_H
 
 #include "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
-#include "btSoftBody.h"
+#include "BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 typedef	btAlignedObjectArray<btSoftBody*> btSoftBodyArray;
 
 class btSoftBodySolver;
 
-class btSoftRigidDynamicsWorld : public btDiscreteDynamicsWorld
+class btSoftMultiBodyDynamicsWorld : public btMultiBodyDynamicsWorld
 {
 
 	btSoftBodyArray	m_softBodies;
@@ -48,9 +49,9 @@ protected:
 
 public:
 
-	btSoftRigidDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver, btCollisionConfiguration* collisionConfiguration, btSoftBodySolver *softBodySolver = 0 );
+	btSoftMultiBodyDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btMultiBodyConstraintSolver* constraintSolver, btCollisionConfiguration* collisionConfiguration, btSoftBodySolver *softBodySolver = 0 );
 
-	virtual ~btSoftRigidDynamicsWorld();
+	virtual ~btSoftMultiBodyDynamicsWorld();
 
 	virtual void	debugDrawWorld();
 
@@ -75,7 +76,7 @@ public:
 
 	virtual btDynamicsWorldType	getWorldType() const
 	{
-		return	BT_SOFT_RIGID_DYNAMICS_WORLD;
+		return	BT_SOFT_MULTIBODY_DYNAMICS_WORLD;
 	}
 
 	btSoftBodyArray& getSoftBodyArray()
@@ -104,4 +105,4 @@ public:
 
 };
 
-#endif //BT_SOFT_RIGID_DYNAMICS_WORLD_H
+#endif //BT_SOFT_MULTIBODY_DYNAMICS_WORLD_H

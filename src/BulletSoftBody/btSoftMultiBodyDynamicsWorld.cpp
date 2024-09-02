@@ -14,26 +14,26 @@ subject to the following restrictions:
 */
 
 
-#include "btSoftRigidDynamicsWorld.h"
+#include "btSoftMultiBodyDynamicsWorld.h"
 #include "LinearMath/btQuickprof.h"
 
 //softbody & helpers
-#include "btSoftBody.h"
-#include "btSoftBodyHelpers.h"
-#include "btSoftBodySolvers.h"
-#include "btDefaultSoftBodySolver.h"
+#include "BulletSoftBody/btSoftBody.h"
+#include "BulletSoftBody/btSoftBodyHelpers.h"
+#include "BulletSoftBody/btSoftBodySolvers.h"
+#include "BulletSoftBody/btDefaultSoftBodySolver.h"
 #include "LinearMath/btSerializer.h"
 
 
-btSoftRigidDynamicsWorld::btSoftRigidDynamicsWorld(
+btSoftMultiBodyDynamicsWorld::btSoftMultiBodyDynamicsWorld(
 	btDispatcher* dispatcher,
 	btBroadphaseInterface* pairCache,
-	btConstraintSolver* constraintSolver,
+	btMultiBodyConstraintSolver* constraintSolver,
 	btCollisionConfiguration* collisionConfiguration,
 	btSoftBodySolver *softBodySolver ) : 
-		btDiscreteDynamicsWorld(dispatcher,pairCache,constraintSolver,collisionConfiguration),
-		m_softBodySolver( softBodySolver ),
-		m_ownsSolver(false)
+		btMultiBodyDynamicsWorld(dispatcher,pairCache,constraintSolver,collisionConfiguration),
+        m_softBodySolver( softBodySolver ),
+        m_ownsSolver(false)
 {
 	if( !m_softBodySolver )
 	{
@@ -62,7 +62,7 @@ btSoftRigidDynamicsWorld::btSoftRigidDynamicsWorld(
 
 }
 
-btSoftRigidDynamicsWorld::~btSoftRigidDynamicsWorld()
+btSoftMultiBodyDynamicsWorld::~btSoftMultiBodyDynamicsWorld()
 {
 	if (m_ownsSolver)
 	{
@@ -71,7 +71,7 @@ btSoftRigidDynamicsWorld::~btSoftRigidDynamicsWorld()
 	}
 }
 
-void	btSoftRigidDynamicsWorld::predictUnconstraintMotion(btScalar timeStep)
+void	btSoftMultiBodyDynamicsWorld::predictUnconstraintMotion(btScalar timeStep)
 {
 	btDiscreteDynamicsWorld::predictUnconstraintMotion( timeStep );
 	{
@@ -80,7 +80,7 @@ void	btSoftRigidDynamicsWorld::predictUnconstraintMotion(btScalar timeStep)
 	}
 }
 
-void	btSoftRigidDynamicsWorld::internalSingleStepSimulation( btScalar timeStep )
+void	btSoftMultiBodyDynamicsWorld::internalSingleStepSimulation( btScalar timeStep )
 {
 
 	// Let the solver grab the soft bodies and if necessary optimize for it
@@ -111,7 +111,7 @@ void	btSoftRigidDynamicsWorld::internalSingleStepSimulation( btScalar timeStep )
 
 }
 
-void	btSoftRigidDynamicsWorld::solveSoftBodiesConstraints( btScalar timeStep )
+void	btSoftMultiBodyDynamicsWorld::solveSoftBodiesConstraints( btScalar timeStep )
 {
 	BT_PROFILE("solveSoftConstraints");
 
@@ -125,7 +125,7 @@ void	btSoftRigidDynamicsWorld::solveSoftBodiesConstraints( btScalar timeStep )
 
 }
 
-void	btSoftRigidDynamicsWorld::addSoftBody(btSoftBody* body, int collisionFilterGroup, int collisionFilterMask)
+void	btSoftMultiBodyDynamicsWorld::addSoftBody(btSoftBody* body, int collisionFilterGroup, int collisionFilterMask)
 {
 	m_softBodies.push_back(body);
 
@@ -139,14 +139,14 @@ void	btSoftRigidDynamicsWorld::addSoftBody(btSoftBody* body, int collisionFilter
 
 }
 
-void	btSoftRigidDynamicsWorld::removeSoftBody(btSoftBody* body)
+void	btSoftMultiBodyDynamicsWorld::removeSoftBody(btSoftBody* body)
 {
 	m_softBodies.remove(body);
 
 	btCollisionWorld::removeCollisionObject(body);
 }
 
-void	btSoftRigidDynamicsWorld::removeCollisionObject(btCollisionObject* collisionObject)
+void	btSoftMultiBodyDynamicsWorld::removeCollisionObject(btCollisionObject* collisionObject)
 {
 	btSoftBody* body = btSoftBody::upcast(collisionObject);
 	if (body)
@@ -155,7 +155,7 @@ void	btSoftRigidDynamicsWorld::removeCollisionObject(btCollisionObject* collisio
 		btDiscreteDynamicsWorld::removeCollisionObject(collisionObject);
 }
 
-void	btSoftRigidDynamicsWorld::debugDrawWorld()
+void	btSoftMultiBodyDynamicsWorld::debugDrawWorld()
 {
 	btDiscreteDynamicsWorld::debugDrawWorld();
 
@@ -192,10 +192,10 @@ struct btSoftSingleRayCallback : public btBroadphaseRayCallback
 	btTransform	m_rayToTrans;
 	btVector3	m_hitNormal;
 
-	const btSoftRigidDynamicsWorld*	m_world;
+	const btSoftMultiBodyDynamicsWorld*	m_world;
 	btCollisionWorld::RayResultCallback&	m_resultCallback;
 
-	btSoftSingleRayCallback(const btVector3& rayFromWorld,const btVector3& rayToWorld,const btSoftRigidDynamicsWorld* world,btCollisionWorld::RayResultCallback& resultCallback)
+	btSoftSingleRayCallback(const btVector3& rayFromWorld,const btVector3& rayToWorld,const btSoftMultiBodyDynamicsWorld* world,btCollisionWorld::RayResultCallback& resultCallback)
 	:m_rayFromWorld(rayFromWorld),
 	m_rayToWorld(rayToWorld),
 	m_world(world),
@@ -261,7 +261,7 @@ struct btSoftSingleRayCallback : public btBroadphaseRayCallback
 	}
 };
 
-void	btSoftRigidDynamicsWorld::rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback) const
+void	btSoftMultiBodyDynamicsWorld::rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback) const
 {
 	BT_PROFILE("rayTest");
 	/// use the broadphase to accelerate the search for objects, based on their aabb
@@ -280,7 +280,7 @@ void	btSoftRigidDynamicsWorld::rayTest(const btVector3& rayFromWorld, const btVe
 }
 
 
-void	btSoftRigidDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,const btTransform& rayToTrans,
+void	btSoftMultiBodyDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,const btTransform& rayToTrans,
 					  btCollisionObject* collisionObject,
 					  const btCollisionShape* collisionShape,
 					  const btTransform& colObjWorldTransform,
@@ -330,7 +330,7 @@ void	btSoftRigidDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,con
 }
 
 
-void	btSoftRigidDynamicsWorld::serializeSoftBodies(btSerializer* serializer)
+void	btSoftMultiBodyDynamicsWorld::serializeSoftBodies(btSerializer* serializer)
 {
 	int i;
 	//serialize all collision objects
@@ -348,7 +348,7 @@ void	btSoftRigidDynamicsWorld::serializeSoftBodies(btSerializer* serializer)
 
 }
 
-void	btSoftRigidDynamicsWorld::serialize(btSerializer* serializer)
+void	btSoftMultiBodyDynamicsWorld::serialize(btSerializer* serializer)
 {
 
 	serializer->startSerialization();
